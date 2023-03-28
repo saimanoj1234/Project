@@ -1,0 +1,133 @@
+
+PROJECT
+
+DATA SOURCES:
+
+SQL-Host: savvients-classroom.cefqqlyrxn3k.us-west-2.rds.amazonaws.com
+username: sav_proj
+password: authenticate
+Check this database :  practical_exercise
+Tables : user,activitylog
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+STEP-1: 
+
+SC1: we can directly load data into hdfs and then hive ( created user and activitylog tables in my database "MANOJ" with the exact schema of tables in sql)
+
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName("Read from MySQL").getOrCreate()
+
+jdbcHostname = "savvients-classroom.cefqqlyrxn3k.us-west-2.rds.amazonaws.com"
+jdbcPort = 3306
+jdbcDatabase = "practical_exercise"
+jdbcUsername = "sav_proj"
+jdbcPassword = "authenticate"
+jdbcUrl = "jdbc:mysql://{0}:{1}/{2}".format(jdbcHostname, jdbcPort, jdbcDatabase)
+
+connectionProperties = {
+    "user": jdbcUsername,
+    "password": jdbcPassword,
+    "driver": "com.mysql.jdbc.Driver"
+}
+
+df = spark.read.jdbc(url=jdbcUrl, table="user", properties=connectionProperties)
+df.show()
+df.write.format('csv').save("hdfs:///apps/hive/warehouse/MANOJ/user181")
+df.write.format('csv').save("hdfs:///apps/hive/warehouse/MANOJ/aclog")
+Here user181 and aclog are the new table which  are created in hive database with the exact schema of the sql table i.e user and activitylog.
+
+SC2: What if the new data size is 1M?
+    Solution: incremental load -- 
+	
+Execution: spark-submit --jars /home/bigdatacloudxlab27228/tswi/mysql-connector-java-8.0.28.jar spark.py
+Here i used --jars because we can import sql tables to hive using sqoop import but problem we are facing problem " unable to connect to sql server". So in order to overcome we downloaded java jar file and executed the above code.
+
+
+
+STEP-2:
+
+To load local CSV file i have created external table in my database 'MANOJ' i.e u__d and then load the given user dump file into that external table
+
+**create the external table in your database with the eaxct schema present in the local csv file and the load**
+
+
+
+
+STEP-3:
+-------REPORTING TABLES--------
+
+
+We used user_upload_dump file to create reporting tables along with the other tables.This user_upload_dump is an external file what we done is we uploaded this file into hdfs and then created external table in hive databases and loaded this file into it by using "LOAD DATA INPATH" command.
+
+1. CREATED USER_TOTAL TABLE
+
+Schema: 
+time_ran                timestamp                                   
+total_users             int                                         
+users_added             int 
+
+create MANOJ.user_total(time_ran timestamp,total_users int,users_added int);
+
+2. CREATED USER_REPORT TABLE
+
+Schema:  
+user_id                 int                                         
+total_updates           int                                         
+total_inserts           int                                         
+total_deletes           int                                         
+last_activity_type      string                                      
+is_active               boolean                                     
+upload_count            int  
+
+create MANOJ.user_report(user_id int,total_updates int,total_inserts int,total_deletes int,last_activity_type varchar(255),is_active boolean,upload_count int);
+
+-- Load data into user_report table--
+
+INSERT OVERWRITE TABLE user_report
+SELECT
+    user.id AS user_id,
+    SUM(CASE WHEN activitylog.action = 'UPDATE' THEN 1 ELSE 0 END) AS total_updates,
+    SUM(CASE WHEN activitylog.action = 'INSERT' THEN 1 ELSE 0 END) AS total_inserts,
+    SUM(CASE WHEN activitylog.action = 'DELETE' THEN 1 ELSE 0 END) AS total_deletes,
+    MAX(activitylog.action) AS last_activity_type,
+    CASE WHEN MAX(activitylog.timestamp) >= DATE_SUB(CURRENT_TIMESTAMP(), 2) THEN true ELSE false END AS is_active,
+    COUNT(user_upload_dump.user_id) AS upload_count
+FROM user
+LEFT JOIN activitylog ON user.id = activitylog.user_id
+LEFT JOIN user_upload_dump ON user.id = user_upload_dump.user_id
+GROUP BY user.id;
+
+select * from user_report;
+
+-- Load data into user_total table--
+
+INSERT INTO user_total
+SELECT 
+    t1.time_ran,
+    t1.total_users,
+    t1.total_users - COALESCE((
+        SELECT t2.total_users 
+        FROM user_total t2 
+        WHERE t2.time_ran < t1.time_ran 
+        ORDER BY t2.time_ran DESC 
+        LIMIT 1
+    ), 0) AS users_added
+FROM (
+    SELECT CURRENT_TIMESTAMP() AS time_ran, COUNT(*) AS total_users
+    FROM user
+) t1;
+
+
+
+
+--EXPECTED RESULT--
+
+select * from user_total;
+
+
+2023-03-23 20:00:26	12	12
+2023-03-23 20:06:02	12	0
+2023-03-23 21:33:17	12	0
