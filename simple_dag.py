@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# What is Airflow?
+## Used to schedule , monitor workflows and data pipelines
+# What is Airflow Scheduler?
+## The Scheduler always checks on your tasks and starts new ones when needed, based on their order and schedules.
+# What is Airflow Webserver?
+## The Webserver is like a window into Airflow’s world. It’s a website that makes it easy for you to see and manage your DAGs. With the Webserver, you can check on your tasks, start them manually, and even fix problems in your pipelines.
+
+
 # In[ ]:
 
 
