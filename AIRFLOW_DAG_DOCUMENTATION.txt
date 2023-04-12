@@ -1,5 +1,4 @@
-
-///How to Install Apache Airflow on Windows without Docker
+How to Install Apache Airflow on Windows without Docker
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Step 1:
