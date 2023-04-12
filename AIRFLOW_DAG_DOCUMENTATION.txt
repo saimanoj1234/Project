@@ -1,0 +1,96 @@
+Step 1:
+
+Launch your Ubuntu
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Step 2:
+
+SetUp  the virtual environment
+
+To work with Airflow on Windows, you need to set up a virtual environment. To do this, you'll need to install the virtualenv package.
+Note: Make sure you are at the root of the terminal by typing:
+1. cd ~
+2. pip install virtualenv 
+Create the virtual environment like this:
+1. virtualenv airflow_env 
+And then activate the environment:
+2. source airflow_env/bin/activate
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Step 3:
+
+Set Up the Airflow Directory
+
+After setting up the directory
+Open a .bashrc script from the terminal with the command:
+1. nano ~/.bashrc 
+And then
+
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+
+
+# for examples
+AIRFLOW_HOME = /home/saimanoj/airflow
+
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
+
+# append to the history file, don't overwrite it
+shopt -s histappend
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=1000
+HISTFILESIZE=2000
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Step 4:
+
+With the virtual environment still active and the current directory pointing to the created Airflow folder, install Apache Airflow:
+
+1. pip install apache-airflow 
+2. Initialize the database:
+   airflow db init
+3. Create a folder named dags inside the airflow folder. This will be used to store all Airflow scripts.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Step 5:
+
+
+Create an Airflow User using:
+
+1. airflow users create --username admin –password admin –firstname admin –lastname admin –role Admin –email youremail@email.com
+
+Check the created user:
+
+2. airflow users list
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Step 6:
+
+Run the Webserver
+
+Run the scheduler with this command:
+1. airflow scheduler 
+Launch another terminal, activate the airflow virtual environment(source airflow_env/bin/activate), cd to $AIRFLOW_HOME, and run the webserver:
+1. airflow webserver 
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Step 7:
+
+Create a dag in your dag folder using vsocde,pycharm..... and save it , then do step 6. After doing that, go to airflow UI by typing localhost:8080/admin and look for your dag.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
