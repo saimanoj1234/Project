@@ -12,6 +12,8 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime
 def my():
     print("hi")
+    
+# DAG OBJECT
 with DAG(dag_id = "hello_world_dag",start_date = datetime(2023,1,1),
     schedule_interval="@hourly",catchup=False) as dag:
         task1 = DummyOperator(task_id = "start")
