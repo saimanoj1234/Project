@@ -96,4 +96,8 @@ Step 7:
 
 Create a dag in your dag folder using vsocde,pycharm..... and save it , then do step 6. After doing that, go to airflow UI by typing localhost:8080/admin and look for your dag.
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Alternatively, you can trigger the DAG from the command line by running:
+
+airflow dags trigger  (actual ID of your DAG)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
